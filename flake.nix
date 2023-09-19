@@ -11,6 +11,8 @@
     {
       nixosModules.lollypops = import ./module.nix;
       nixosModules.default = self.nixosModules.lollypops;
+      darwinModules.lollypops = self.nixosModules.lollypops;
+      darwinModules.default = self.darwinModules.lollypops;
 
       hmModule = import ./hm-module.nix;
 
@@ -221,7 +223,7 @@
                           {
                             taskfile = mkTaskFileForHost name value;
                           })
-                        configFlake.nixosConfigurations;
+                        (configFlake.nixosConfigurations // configFlake.darwinConfigurations);
 
                       # Define grouped tasks to run all tasks for one host.
                       # E.g. to make a complete deployment for host "server01":
@@ -237,10 +239,10 @@
                               { task = "${name}:rebuild"; }
                             ];
                           })
-                        configFlake.nixosConfigurations // {
+                        (configFlake.nixosConfigurations // configFlake.darwinConfigurations) // {
                         # Add special task called "all" which has all hosts as
                         # dependency to deploy all hosts at onece
-                        all.deps = map (x: { task = x; }) (builtins.attrNames configFlake.nixosConfigurations);
+                        all.deps = map (x: { task = x; }) (builtins.attrNames (configFlake.nixosConfigurations // configFlake.darwinConfigurations));
                       };
                     });
                 in
